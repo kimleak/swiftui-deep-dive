@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwiftUI Deep Dive — A 12-Week Plan for UIKit Devs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d12; --bg-elev:#11141b; --bg-card:#161a23; --border:#222837;
+    --fg:#e7ecf3; --fg-dim:#9aa3b2; --fg-muted:#6c7689;
+    --accent:#5fb3ff; --accent-2:#a78bfa; --accent-3:#f97583;
+    --good:#34d399; --warn:#fbbf24;
+    --code-bg:#0f1320;
+    --maxw: 980px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.6;font-size:16px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:0.92em}
+  pre{background:var(--code-bg)!important;border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;font-size:13.5px;line-height:1.55}
+  pre code{background:transparent}
+  :not(pre)>code{background:#1b2030;border:1px solid var(--border);padding:2px 6px;border-radius:6px;color:#cbd5e1}
+
+  /* Layout */
+  .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+  aside{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg-elev);border-right:1px solid var(--border);padding:24px 18px}
+  aside h1{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);margin:0 0 14px}
+  aside .brand{font-size:18px;font-weight:800;color:var(--fg);margin-bottom:6px;letter-spacing:-.01em}
+  aside .sub{font-size:12px;color:var(--fg-muted);margin-bottom:22px}
+  nav ul{list-style:none;padding:0;margin:0}
+  nav li a{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;color:var(--fg-dim);font-size:14px;font-weight:500}
+  nav li a:hover{background:#1a2030;color:var(--fg);text-decoration:none}
+  nav li a.active{background:linear-gradient(135deg,rgba(95,179,255,.18),rgba(167,139,250,.12));color:var(--fg)}
+  nav li a span.num{color:var(--fg-muted);font-variant-numeric:tabular-nums;font-size:12px}
+  nav .group-title{margin-top:18px;font-size:11px;letter-spacing:.1em;color:var(--fg-muted);text-transform:uppercase;padding:0 10px}
+
+  main{padding:48px 56px 120px;max-width:calc(var(--maxw) + 112px);width:100%}
+  .hero{padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:36px}
+  .hero h1{font-size:38px;line-height:1.15;margin:0 0 12px;letter-spacing:-.02em;font-weight:800}
+  .hero h1 .grad{background:linear-gradient(120deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--fg-dim);margin:0;max-width:62ch;font-size:17px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--fg-dim);background:var(--bg-card)}
+  .pill.accent{border-color:rgba(95,179,255,.4);color:var(--accent)}
+  .pill.warn{border-color:rgba(251,191,36,.4);color:var(--warn)}
+
+  /* Modules */
+  section.module{padding:36px 0;border-bottom:1px solid var(--border);scroll-margin-top:24px}
+  section.module:last-of-type{border-bottom:none}
+  .module-head{display:flex;align-items:flex-start;gap:18px;margin-bottom:18px}
+  .module-num{flex:0 0 auto;width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;background:linear-gradient(135deg,#1c2436,#161a23);border:1px solid var(--border);color:var(--accent)}
+  .module-num.purple{color:var(--accent-2)}
+  .module-num.pink{color:var(--accent-3)}
+  .module-num.green{color:var(--good)}
+  .module-head h2{margin:0;font-size:26px;line-height:1.2;letter-spacing:-.01em}
+  .module-head .tagline{color:var(--fg-dim);font-size:14px;margin-top:4px}
+
+  h3{margin:28px 0 10px;font-size:17px;letter-spacing:.01em;color:var(--fg)}
+  h3 .h3num{color:var(--fg-muted);margin-right:8px;font-variant-numeric:tabular-nums}
+  h4{margin:18px 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--fg-muted)}
+
+  p{margin:0 0 12px;color:#d6dce6}
+  ul{margin:0 0 14px;padding-left:22px}
+  ul li{margin-bottom:6px}
+
+  /* Comparison cards */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 18px}
+  .compare .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .compare .card .label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--fg-muted);margin-bottom:6px}
+  .compare .card.uikit .label{color:#fb923c}
+  .compare .card.swiftui .label{color:var(--accent)}
+  .compare pre{margin:0;font-size:12.5px}
+
+  .callout{border-left:3px solid var(--accent);background:rgba(95,179,255,.06);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0;font-size:14.5px;color:#d6dce6}
+  .callout.warn{border-left-color:var(--warn);background:rgba(251,191,36,.06)}
+  .callout.tip{border-left-color:var(--good);background:rgba(52,211,153,.06)}
+  .callout strong{color:var(--fg)}
+
+  .project{background:linear-gradient(180deg,rgba(167,139,250,.08),rgba(167,139,250,.02));border:1px solid rgba(167,139,250,.25);border-radius:14px;padding:18px 20px;margin:18px 0}
+  .project h4{color:var(--accent-2);margin-top:0}
+  .project .req{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 14px;margin-top:8px}
+  .project .req span{font-size:13.5px;color:#d6dce6;display:flex;gap:8px;align-items:flex-start}
+  .project .req span::before{content:"▸";color:var(--accent-2);flex:0 0 auto}
+
+  .resources{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:8px}
+  .resources a{font-size:13.5px;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;display:block;color:var(--fg-dim)}
+  .resources a:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
+
+  .toc-strip{display:flex;gap:6px;overflow-x:auto;padding:8px 0;margin-bottom:18px}
+  .toc-strip a{flex:0 0 auto;font-size:12px;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--fg-dim)}
+  .toc-strip a:hover{color:var(--accent);text-decoration:none}
+
+  footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);color:var(--fg-muted);font-size:13px;text-align:center}
+
+  @media (max-width: 880px){
+    .app{grid-template-columns:1fr}
+    aside{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+    main{padding:28px 22px 80px}
+    .compare{grid-template-columns:1fr}
+    .hero h1{font-size:30px}
+  }
+
+  /* progress dot */
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--fg-muted);display:inline-block}
+  .dot.done{background:var(--good)}
+  .dot.now{background:var(--accent);box-shadow:0 0 0 3px rgba(95,179,255,.2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">SwiftUI Deep Dive</div>
+    <div class="sub">12-Week Plan · UIKit → SwiftUI</div>
+    <h1>Modules</h1>
+    <nav>
+      <div class="group-title">Foundations</div>
+      <ul>
+        <li><a href="#m1"><span>1 · Mental Model</span><span class="num">W1</span></a></li>
+        <li><a href="#m2"><span>2 · Layout System</span><span class="num">W2</span></a></li>
+        <li><a href="#m3"><span>3 · State & Bindings</span><span class="num">W3</span></a></li>
+      </ul>
+      <div class="group-title">App Building</div>
+      <ul>
+        <li><a href="#m4"><span>4 · Navigation & Lists</span><span class="num">W4</span></a></li>
+        <li><a href="#m5"><span>5 · Forms & Animation</span><span class="num">W5</span></a></li>
+        <li><a href="#m6"><span>6 · Concurrency & Networking</span><span class="num">W6</span></a></li>
+      </ul>
+      <div class="group-title">Going Deeper</div>
+      <ul>
+        <li><a href="#m7"><span>7 · SwiftData & Persistence</span><span class="num">W7</span></a></li>
+        <li><a href="#m8"><span>8 · Environment & DI</span><span class="num">W8</span></a></li>
+        <li><a href="#m9"><span>9 · Canvas & Custom Drawing</span><span class="num">W9</span></a></li>
+      </ul>
+      <div class="group-title">Production-Ready</div>
+      <ul>
+        <li><a href="#m10"><span>10 · Architecture</span><span class="num">W10</span></a></li>
+        <li><a href="#m11"><span>11 · Testing & A11y</span><span class="num">W11</span></a></li>
+        <li><a href="#m12"><span>12 · Capstone</span><span class="num">W12</span></a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="hero">
+      <h1>SwiftUI Deep Dive: <span class="grad">A 12-Week Plan for UIKit Engineers</span></h1>
+      <p>A project-driven curriculum modeled on the KSHRD Advanced iOS course, redesigned for someone who already knows UIKit. Each week pairs a UIKit-to-SwiftUI mental-model bridge with full, copy-pasteable SwiftUI code and a hands-on project. By Week 12 you ship a multi-module SwiftUI app with networking, persistence, animations, and tests.</p>
+      <div class="meta">
+        <span class="pill accent">Level: Intermediate → Advanced</span>
+        <span class="pill">Tooling: Xcode 16, iOS 17/18 SDK</span>
+        <span class="pill">~10 hrs/week</span>
+        <span class="pill warn">Prereq: Swift 5.9+, UIKit fundamentals</span>
+      </div>
+    </div>
+
+    <!-- HOW TO USE -->
+    <section class="module" id="how">
+      <div class="module-head">
+        <div class="module-num green">★</div>
+        <div>
+          <h2>How to use this plan</h2>
+          <div class="tagline">Read this first — it'll save you a week.</div>
+        </div>
+      </div>
+      <p>Each module follows the same shape: a <strong>UIKit → SwiftUI bridge</strong> (so you map what you know), <strong>core concepts</strong> (the new mental model), <strong>full code samples</strong> (drop into a Playground or new SwiftUI app), a <strong>weekly project</strong> with concrete acceptance criteria, and <strong>further reading</strong>.</p>
+      <p>Treat the project as the assessment. If you can ship it without copying the sample code line-for-line, you've actually learned the module.</p>
+      <div class="callout tip"><strong>Pro tip:</strong> Build every weekly project in a single Xcode workspace called <code>SwiftUIBootcamp</code> with each week as a Swift Package or app target. By Week 12 you'll have a portfolio of 11 mini-apps.</div>
+    </section>
+
+    <!-- WEEK 1 -->
+    <section class="module" id="m1">
+      <div class="module-head">
+        <div class="module-num">1</div>
+        <div>
+          <h2>Week 1 · Mental Model: Views Are Values</h2>
+          <div class="tagline">Stop thinking like a UIView subclass. Start thinking like a function from State → UI.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">1.1</span>The single biggest UIKit-to-SwiftUI shift</h3>
+      <p>In UIKit, a view is a long-lived object you mutate (<code>label.text = "Hi"</code>). In SwiftUI, a <code>View</code> is a <em>value</em> — a lightweight struct that the framework re-creates from your state. The framework diffs that tree and updates the screen. You never hold or mutate a view; you describe what should be on screen for the current state.</p>
+
+      <div class="compare">
+        <div class="card uikit">
+          <div class="label">UIKit (imperative)</div>
+<pre><code class="language-swift">class CounterVC: UIViewController {
+    private let label = UILabel()
+    private var count = 0 {
+        didSet { label.text = "\(count)" }
+    }
+    @objc func tap() { count += 1 }
+}</code></pre>
+        </div>
+        <div class="card swiftui">
+          <div class="label">SwiftUI (declarative)</div>
+<pre><code class="language-swift">struct CounterView: View {
+    @State private var count = 0
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("\(count)").font(.largeTitle)
+            Button("Tap") { count += 1 }
+        }
+    }
+}</code></pre>
+        </div>
+      </div>
+
+      <h3><span class="h3num">1.2</span>The four key primitives you'll see everywhere</h3>
+      <ul>
+        <li><code>View</code> — protocol; conform with a <code>body</code> property returning <code>some View</code>.</li>
+        <li><code>@State</code> — owned, mutable, view-local state. Like <code>private var</code> with diffing.</li>
+        <li><code>@Binding</code> — a two-way handle to state owned by a parent. Like <code>inout</code> for views.</li>
+        <li><code>some View</code> — opaque return type; lets the compiler reason about the view tree without erasing types.</li>
+      </ul>
+
+      <h3><span class="h3num">1.3</span>Modifiers compose, they don't mutate</h3>
+      <p>In UIKit you'd write <code>label.font = .boldSystemFont(...)</code>. In SwiftUI, modifiers return a <em>new wrapped view</em>. Order matters.</p>
+<pre><code class="language-swift">Text("Hello, SwiftUI")
+    .font(.title)
+    .foregroundStyle(.white)
+    .padding()
+    .background(.blue, in: RoundedRectangle(cornerRadius: 12))
+    .padding()</code></pre>
+
+      <div class="callout warn"><strong>Gotcha:</strong> <code>.padding().background()</code> ≠ <code>.background().padding()</code>. Modifiers wrap outward — the second pads outside the background. Internalize this early.</div>
+
+      <h3><span class="h3num">1.4</span>Previews replace your simulator loop</h3>
+<pre><code class="language-swift">#Preview("Counter") {
+    CounterView()
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Counter — Long Label") {
+    CounterView()
+        .environment(\.locale, .init(identifier: "de_DE"))
+}</code></pre>
+
+      <div class="project">
+        <h4>Week 1 Project · Counter Pro</h4>
+        <p>Build a counter app with three independent counters on one screen, each with +/− buttons, a step-size picker (1, 5, 10), and a "Reset all" button. No <code>UIKit</code> imports.</p>
+        <div class="req">
+          <span>Three rows, each its own <code>CounterRow</code> view</span>
+          <span>Use <code>@State</code> in each row, <code>@Binding</code> for step</span>
+          <span>Step picker with <code>Picker(.segmented)</code></span>
+          <span>Animate the count change with <code>.contentTransition(.numericText())</code></span>
+          <span>Three previews: light, dark, dynamic-type XL</span>
+        </div>
+      </div>
+
+      <h4>Further reading</h4>
+      <div class="resources">
+        <a href="https://developer.apple.com/tutorials/swiftui">Apple SwiftUI Tutorials</a>
+        <a href="https://www.hackingwithswift.com/quick-start/swiftui">Hacking with Swift — SwiftUI</a>
+        <a href="https://developer.apple.com/documentation/swiftui/view">View protocol docs</a>
+      </div>
+    </section>
+
+    <!-- WEEK 2 -->
+    <section class="module" id="m2">
+      <div class="module-head">
+        <div class="module-num purple">2</div>
+        <div>
+          <h2>Week 2 · Layout System</h2>
+          <div class="tagline">Stacks, frames, alignment, and why <code>GeometryReader</code> isn't your first choice.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">2.1</span>The layout protocol in one paragraph</h3>
+      <p>SwiftUI layout is a <em>negotiation</em>. The parent proposes a size to the child; the child returns a desired size; the parent positions it. There is no Auto Layout solver, no constraints. Once you grok this, layout bugs become obvious.</p>
+
+      <h3><span class="h3num">2.2</span>The stack family</h3>
+<pre><code class="language-swift">VStack(alignment: .leading, spacing: 12) {
+    Text("Title").font(.title2.bold())
+    Text("Subtitle").foregroundStyle(.secondary)
+    HStack {
+        Image(systemName: "star.fill").foregroundStyle(.yellow)
+        Text("4.8")
+        Spacer()                  // pushes everything left
+        Text("12 reviews").foregroundStyle(.secondary)
+    }
+}
+.padding()
+.frame(maxWidth: .infinity, alignment: .leading)
+.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))</code></pre>
+
+      <div class="compare">
+        <div class="card uikit">
+          <div class="label">UIKit equivalent</div>
+<pre><code class="language-swift">// UIStackView with axis = .vertical
+// Plus a UIStackView nested for the rating row
+// Plus constraints for padding, maxWidth, etc.
+// ~30 lines to express the same idea.</code></pre>
+        </div>
+        <div class="card swiftui">
+          <div class="label">SwiftUI</div>
+<pre><code class="language-swift">VStack(alignment: .leading, spacing: 12) { /* … */ }
+    .padding()
+    .frame(maxWidth: .infinity, alignment: .leading)</code></pre>
+        </div>
+      </div>
+
+      <h3><span class="h3num">2.3</span>Frame, fixedSize, and the layout neutral</h3>
+<pre><code class="language-swift">// .frame proposes a size; the view may not honor it.
+Text("Long body of text that wraps")
+    .frame(width: 120)            // proposes 120pt width; text wraps
+    .border(.red)
+
+// fixedSize tells a view: "use your ideal size, ignore the proposal"
+Text("Long body of text that should not truncate")
+    .fixedSize(horizontal: false, vertical: true)</code></pre>
+
+      <h3><span class="h3num">2.4</span>Alignment guides (the "Auto Layout moment")</h3>
+<pre><code class="language-swift">HStack(alignment: .lastTextBaseline) {
+    Text("Hello").font(.largeTitle)
+    Text("world").font(.body).foregroundStyle(.secondary)
+}</code></pre>
+
+      <div class="callout"><strong>When to reach for <code>GeometryReader</code>:</strong> almost never as a layout container. Use it inside a <code>.background</code> or <code>.overlay</code> to read a size, or use the new <code>Layout</code> protocol (iOS 16+) for genuinely custom layouts.</div>
+
+      <h3><span class="h3num">2.5</span>Custom layouts with the <code>Layout</code> protocol</h3>
+<pre><code class="language-swift">struct EqualWidths: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -&gt; CGSize {
+        let w = proposal.width ?? 0
+        let each = w / CGFloat(max(subviews.count, 1))
+        let h = subviews.map { $0.sizeThatFits(.init(width: each, height: nil)).height }.max() ?? 0
+        return CGSize(width: w, height: h)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let each = bounds.width / CGFloat(max(subviews.count, 1))
+        for (i, sv) in subviews.enumerated() {
+            sv.place(at: CGPoint(x: bounds.minX + each * CGFloat(i), y: bounds.minY),
+                     proposal: .init(width: each, height: bounds.height))
+        }
+    }
+}</code></pre>
+
+      <div class="project">
+        <h4>Week 2 Project · Profile Card Gallery</h4>
+        <p>Build a scrollable gallery of profile cards with avatar, name, role, badge row, and a CTA. Cards adapt from compact to regular size class.</p>
+        <div class="req">
+          <span>One <code>ProfileCard</code> reusable view, parameterized</span>
+          <span>Use <code>ViewThatFits</code> for the layout switch</span>
+          <span>Custom <code>FlowLayout</code> for the badge row (use <code>Layout</code>)</span>
+          <span>Snapshot the rendered card via <code>ImageRenderer</code></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 3 -->
+    <section class="module" id="m3">
+      <div class="module-head">
+        <div class="module-num pink">3</div>
+        <div>
+          <h2>Week 3 · State & Bindings</h2>
+          <div class="tagline">@State, @Binding, @Observable — when to use which, and the iOS 17 Observation revolution.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">3.1</span>The state ownership rule</h3>
+      <p>Every piece of state has exactly <em>one</em> owner. Pass a read-write handle (<code>@Binding</code>) downward, never duplicate. If two views need to read/write the same value, lift the state to their common parent.</p>
+
+      <h3><span class="h3num">3.2</span>@State, @Binding</h3>
+<pre><code class="language-swift">struct ToggleRow: View {
+    @Binding var isOn: Bool        // owned by parent
+    let label: String
+    var body: some View {
+        Toggle(label, isOn: $isOn) // $ creates a Binding
+    }
+}
+
+struct SettingsView: View {
+    @State private var notifications = true       // owner
+    @State private var darkMode = false
+    var body: some View {
+        Form {
+            ToggleRow(isOn: $notifications, label: "Notifications")
+            ToggleRow(isOn: $darkMode, label: "Dark mode")
+        }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">3.3</span>@Observable (iOS 17+) — the new way</h3>
+<pre><code class="language-swift">import Observation
+
+@Observable
+final class CartModel {
+    var items: [String] = []
+    var total: Decimal = 0
+    func add(_ name: String, price: Decimal) {
+        items.append(name)
+        total += price
+    }
+}
+
+struct CartView: View {
+    @State private var cart = CartModel()         // owns it
+    var body: some View {
+        VStack {
+            Text("Total: \(cart.total, format: .currency(code: "USD"))")
+            List(cart.items, id: \.self) { Text($0) }
+            Button("Add coffee") { cart.add("Coffee", price: 4.5) }
+        }
+    }
+}</code></pre>
+
+      <div class="callout warn"><strong>Don't use <code>ObservableObject</code> + <code>@Published</code> + <code>@StateObject</code> for new code on iOS 17+.</strong> The <code>@Observable</code> macro reads only the properties your view actually uses, so re-renders are surgical. The old protocol re-renders any view holding the object whenever any <code>@Published</code> changes.</div>
+
+      <h3><span class="h3num">3.4</span>@Bindable — bind into an @Observable model</h3>
+<pre><code class="language-swift">struct EditProfile: View {
+    @Bindable var user: UserModel  // user is @Observable
+    var body: some View {
+        Form {
+            TextField("Name", text: $user.name)
+            DatePicker("DOB", selection: $user.dob, displayedComponents: .date)
+        }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">3.5</span>Decision tree</h3>
+      <ul>
+        <li>Local-only, simple value? → <code>@State</code></li>
+        <li>Read/write a parent's <code>@State</code>? → <code>@Binding</code></li>
+        <li>Reference type with multiple properties / business logic? → <code>@Observable</code> + <code>@State</code> at the owning view</li>
+        <li>Pass an <code>@Observable</code> deep without prop-drilling? → <code>@Environment</code> (Week 8)</li>
+      </ul>
+
+      <div class="project">
+        <h4>Week 3 Project · Habit Tracker</h4>
+        <p>A daily habit tracker. List of habits, each with a streak count and a "done today" toggle. Add/edit/delete habits via a sheet.</p>
+        <div class="req">
+          <span><code>@Observable</code> <code>HabitStore</code> with CRUD</span>
+          <span>Edit sheet bound via <code>@Bindable</code></span>
+          <span>Drag-to-reorder, swipe-to-delete</span>
+          <span>Streak resets if a day is missed (test in Previews)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 4 -->
+    <section class="module" id="m4">
+      <div class="module-head">
+        <div class="module-num">4</div>
+        <div>
+          <h2>Week 4 · Navigation & Lists</h2>
+          <div class="tagline">NavigationStack, programmatic navigation, and Lists that don't make you miss UITableView.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">4.1</span>NavigationStack — the modern replacement for NavigationView</h3>
+<pre><code class="language-swift">struct ContentView: View {
+    var body: some View {
+        NavigationStack {
+            List(Recipe.samples) { recipe in
+                NavigationLink(value: recipe) {
+                    RecipeRow(recipe: recipe)
+                }
+            }
+            .navigationTitle("Recipes")
+            .navigationDestination(for: Recipe.self) { recipe in
+                RecipeDetail(recipe: recipe)
+            }
+        }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">4.2</span>Programmatic navigation with NavigationPath</h3>
+<pre><code class="language-swift">@Observable
+final class Router {
+    var path = NavigationPath()
+    func push(_ recipe: Recipe) { path.append(recipe) }
+    func popToRoot() { path = NavigationPath() }
+}
+
+struct AppRoot: View {
+    @State private var router = Router()
+    var body: some View {
+        NavigationStack(path: $router.path) {
+            HomeView()
+                .navigationDestination(for: Recipe.self) { RecipeDetail(recipe: $0) }
+                .navigationDestination(for: Author.self)  { AuthorView(author: $0) }
+        }
+        .environment(router)
+    }
+}</code></pre>
+
+      <h3><span class="h3num">4.3</span>Lists, sections, swipe actions, search</h3>
+<pre><code class="language-swift">struct InboxView: View {
+    @State private var query = ""
+    @State private var messages: [Message] = .sample
+    var body: some View {
+        List {
+            ForEach(filtered) { msg in
+                MessageRow(message: msg)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) { delete(msg) } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                    .swipeActions(edge: .leading) {
+                        Button { archive(msg) } label: {
+                            Label("Archive", systemImage: "archivebox")
+                        }.tint(.orange)
+                    }
+            }
+        }
+        .listStyle(.plain)
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always))
+        .refreshable { await reload() }
+    }
+    var filtered: [Message] { /* … */ messages }
+    func delete(_ m: Message) { /* … */ }
+    func archive(_ m: Message) { /* … */ }
+    func reload() async { /* … */ }
+}</code></pre>
+
+      <h3><span class="h3num">4.4</span>Tabs and split views</h3>
+<pre><code class="language-swift">TabView {
+    HomeView()    .tabItem { Label("Home", systemImage: "house") }
+    SearchView()  .tabItem { Label("Search", systemImage: "magnifyingglass") }
+    ProfileView() .tabItem { Label("Me", systemImage: "person.crop.circle") }
+}
+
+// iPad / Mac
+NavigationSplitView {
+    Sidebar()
+} content: {
+    InboxList()
+} detail: {
+    MessageDetail()
+}</code></pre>
+
+      <div class="project">
+        <h4>Week 4 Project · News Reader</h4>
+        <p>A two-pane news reader. Sidebar of categories, list of articles, detail with reading view. Programmatic deep-linking via URL scheme.</p>
+        <div class="req">
+          <span><code>NavigationSplitView</code> with three columns on iPad</span>
+          <span>Single <code>Router</code> drives navigation</span>
+          <span>Deep link <code>swiftui-news://article/42</code> opens correct article</span>
+          <span>Search across titles + categories</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 5 -->
+    <section class="module" id="m5">
+      <div class="module-head">
+        <div class="module-num purple">5</div>
+        <div>
+          <h2>Week 5 · Forms & Animation</h2>
+          <div class="tagline">Form controls that are 80% as polished as Settings.app for 20% of the work — and animations that feel native.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">5.1</span>Form controls quick reference</h3>
+<pre><code class="language-swift">Form {
+    Section("Account") {
+        TextField("Email", text: $email)
+            .textContentType(.emailAddress)
+            .keyboardType(.emailAddress)
+            .textInputAutocapitalization(.never)
+        SecureField("Password", text: $password)
+        DatePicker("Birthday", selection: $dob, displayedComponents: .date)
+    }
+    Section("Preferences") {
+        Toggle("Notifications", isOn: $notifications)
+        Picker("Theme", selection: $theme) {
+            ForEach(Theme.allCases, id: \.self) { Text($0.label).tag($0) }
+        }
+        Stepper("Snooze: \(snooze) min", value: $snooze, in: 0...60, step: 5)
+    }
+    Section {
+        Button("Save", action: save).disabled(!isValid)
+    }
+}</code></pre>
+
+      <h3><span class="h3num">5.2</span>The four flavors of animation</h3>
+<pre><code class="language-swift">// 1. Implicit on a value
+.animation(.smooth, value: isExpanded)
+
+// 2. Explicit, scoped to a state change
+withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+    isExpanded.toggle()
+}
+
+// 3. Transition (insertion/removal)
+if showDetails {
+    DetailsView().transition(.move(edge: .bottom).combined(with: .opacity))
+}
+
+// 4. matchedGeometryEffect — hero animations
+@Namespace private var ns
+struct CardView: View {
+    @State private var open = false
+    var body: some View {
+        if open {
+            VStack { /* expanded */ }
+                .matchedGeometryEffect(id: "hero", in: ns)
+                .onTapGesture { withAnimation(.spring) { open = false } }
+        } else {
+            RoundedRectangle(cornerRadius: 12)
+                .frame(height: 80)
+                .matchedGeometryEffect(id: "hero", in: ns)
+                .onTapGesture { withAnimation(.spring) { open = true } }
+        }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">5.3</span>Phase animations (iOS 17+)</h3>
+<pre><code class="language-swift">Image(systemName: "heart.fill")
+    .symbolEffect(.bounce, value: likes)
+    .phaseAnimator([1.0, 1.2, 0.95, 1.0], trigger: likes) { content, scale in
+        content.scaleEffect(scale)
+    }</code></pre>
+
+      <div class="callout tip"><strong>Animation rule of thumb:</strong> reach for <code>withAnimation</code> first. Use implicit <code>.animation(_:value:)</code> only when one specific value drives a specific view's change.</div>
+
+      <div class="project">
+        <h4>Week 5 Project · Onboarding Flow</h4>
+        <p>A four-screen onboarding flow with progress bar, swipe + button navigation, and a hero image that animates between steps using <code>matchedGeometryEffect</code>.</p>
+        <div class="req">
+          <span>Form-validated final screen (name + email)</span>
+          <span>Progress bar with spring animation</span>
+          <span>Hero image transitions across all 4 screens</span>
+          <span>VoiceOver-readable in correct order (Week 11 prep)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 6 -->
+    <section class="module" id="m6">
+      <div class="module-head">
+        <div class="module-num pink">6</div>
+        <div>
+          <h2>Week 6 · Concurrency & Networking</h2>
+          <div class="tagline">async/await, structured concurrency, and the .task modifier — your new URLSession workflow.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">6.1</span>The .task modifier — your most-used networking entry</h3>
+<pre><code class="language-swift">struct UserListView: View {
+    @State private var users: [User] = []
+    @State private var error: Error?
+    var body: some View {
+        List(users) { Text($0.name) }
+            .overlay { if users.isEmpty { ProgressView() } }
+            .task {                                          // runs when view appears
+                do { users = try await UserAPI.fetchAll() }
+                catch { self.error = error }
+            }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">6.2</span>An async API client</h3>
+<pre><code class="language-swift">struct User: Codable, Identifiable { let id: Int; let name: String; let email: String }
+
+enum APIError: Error { case badStatus(Int), decoding(Error) }
+
+struct UserAPI {
+    static let baseURL = URL(string: "https://jsonplaceholder.typicode.com")!
+    static func fetchAll() async throws -&gt; [User] {
+        let (data, resp) = try await URLSession.shared.data(from: baseURL.appending(path: "users"))
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw APIError.badStatus((resp as? HTTPURLResponse)?.statusCode ?? -1)
+        }
+        do { return try JSONDecoder().decode([User].self, from: data) }
+        catch { throw APIError.decoding(error) }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">6.3</span>Structured concurrency with TaskGroup</h3>
+<pre><code class="language-swift">func fetchAvatars(for users: [User]) async throws -&gt; [Int: Data] {
+    try await withThrowingTaskGroup(of: (Int, Data).self) { group in
+        for user in users {
+            group.addTask {
+                let url = URL(string: "https://i.pravatar.cc/150?u=\(user.id)")!
+                let (data, _) = try await URLSession.shared.data(from: url)
+                return (user.id, data)
+            }
+        }
+        var out: [Int: Data] = [:]
+        for try await (id, data) in group { out[id] = data }
+        return out
+    }
+}</code></pre>
+
+      <h3><span class="h3num">6.4</span>@MainActor and view models</h3>
+<pre><code class="language-swift">@Observable
+@MainActor
+final class FeedViewModel {
+    var posts: [Post] = []
+    var phase: Phase = .idle
+    enum Phase { case idle, loading, loaded, failed(String) }
+
+    func load() async {
+        phase = .loading
+        do {
+            posts = try await PostAPI.fetch()
+            phase = .loaded
+        } catch {
+            phase = .failed(error.localizedDescription)
+        }
+    }
+}</code></pre>
+
+      <div class="callout warn"><strong>Cancellation is free, but only if you cooperate.</strong> The <code>.task</code> modifier auto-cancels when the view disappears. Inside long loops, call <code>try Task.checkCancellation()</code>.</div>
+
+      <div class="project">
+        <h4>Week 6 Project · GitHub Search</h4>
+        <p>Search GitHub repos via their REST API. Debounced search field, paginated infinite scroll, image avatars loaded in parallel with TaskGroup.</p>
+        <div class="req">
+          <span>Debounce 300ms with <code>.task(id: query)</code></span>
+          <span>Pagination via <code>.onAppear</code> on last cell</span>
+          <span>Cancellation when query changes mid-flight</span>
+          <span>Empty / loading / error states all handled</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 7 -->
+    <section class="module" id="m7">
+      <div class="module-head">
+        <div class="module-num">7</div>
+        <div>
+          <h2>Week 7 · SwiftData & Persistence</h2>
+          <div class="tagline">@Model, @Query, ModelContext — Core Data finally feels like Swift.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">7.1</span>Define a model with @Model</h3>
+<pre><code class="language-swift">import SwiftData
+
+@Model
+final class TodoItem {
+    var title: String
+    var isDone: Bool
+    var createdAt: Date
+    var dueDate: Date?
+    @Relationship(deleteRule: .cascade) var subtasks: [Subtask] = []
+
+    init(title: String, dueDate: Date? = nil) {
+        self.title = title
+        self.isDone = false
+        self.createdAt = .now
+        self.dueDate = dueDate
+    }
+}
+
+@Model
+final class Subtask {
+    var title: String
+    var isDone: Bool
+    init(title: String) { self.title = title; self.isDone = false }
+}</code></pre>
+
+      <h3><span class="h3num">7.2</span>Wire up the container</h3>
+<pre><code class="language-swift">@main
+struct TodoApp: App {
+    var body: some Scene {
+        WindowGroup { TodoListView() }
+            .modelContainer(for: [TodoItem.self, Subtask.self])
+    }
+}</code></pre>
+
+      <h3><span class="h3num">7.3</span>Query, insert, delete</h3>
+<pre><code class="language-swift">struct TodoListView: View {
+    @Environment(\.modelContext) private var ctx
+    @Query(sort: \TodoItem.createdAt, order: .reverse) private var items: [TodoItem]
+    @State private var newTitle = ""
+
+    var body: some View {
+        List {
+            ForEach(items) { item in
+                HStack {
+                    Button { item.isDone.toggle() } label: {
+                        Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
+                    }
+                    Text(item.title).strikethrough(item.isDone)
+                }
+            }
+            .onDelete { idx in idx.forEach { ctx.delete(items[$0]) } }
+        }
+        .safeAreaInset(edge: .bottom) {
+            HStack {
+                TextField("New todo", text: $newTitle)
+                Button("Add") {
+                    ctx.insert(TodoItem(title: newTitle))
+                    newTitle = ""
+                }.disabled(newTitle.isEmpty)
+            }.padding()
+        }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">7.4</span>Filtered queries with #Predicate</h3>
+<pre><code class="language-swift">struct ActiveTodos: View {
+    @Query(filter: #Predicate&lt;TodoItem&gt; { !$0.isDone },
+           sort: \TodoItem.dueDate)
+    private var active: [TodoItem]
+    var body: some View { List(active) { Text($0.title) } }
+}</code></pre>
+
+      <div class="callout"><strong>UIKit comparison:</strong> what used to be 80 lines of Core Data + NSFetchedResultsController + NSManagedObjectContext is ~10 lines here, and the view auto-updates on inserts/deletes.</div>
+
+      <div class="project">
+        <h4>Week 7 Project · Notes App with Folders</h4>
+        <p>Apple Notes-style app: folders, notes within folders, full-text search across all notes. CloudKit sync (optional stretch goal).</p>
+        <div class="req">
+          <span>Two <code>@Model</code>s: <code>Folder</code> and <code>Note</code> with cascade delete</span>
+          <span>Search uses <code>#Predicate</code> with <code>contains</code></span>
+          <span>Move note between folders via context menu</span>
+          <span>Empty trash after 30 days (background task)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 8 -->
+    <section class="module" id="m8">
+      <div class="module-head">
+        <div class="module-num purple">8</div>
+        <div>
+          <h2>Week 8 · Environment & Dependency Injection</h2>
+          <div class="tagline">@Environment isn't just for color schemes — it's how you wire dependencies through your view tree.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">8.1</span>Built-in environment values</h3>
+<pre><code class="language-swift">struct ThemedView: View {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        VStack {
+            Text("Scheme: \(scheme == .dark ? "dark" : "light")")
+            Text("Type size: \(typeSize.description)")
+            Button("Close") { dismiss() }
+        }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">8.2</span>Custom environment values</h3>
+<pre><code class="language-swift">private struct APIClientKey: EnvironmentKey {
+    static let defaultValue: APIClient = .live
+}
+
+extension EnvironmentValues {
+    var apiClient: APIClient {
+        get { self[APIClientKey.self] }
+        set { self[APIClientKey.self] = newValue }
+    }
+}
+
+// Inject:
+ContentView().environment(\.apiClient, .preview)
+
+// Read:
+@Environment(\.apiClient) private var api</code></pre>
+
+      <h3><span class="h3num">8.3</span>@Environment for @Observable models</h3>
+<pre><code class="language-swift">@Observable final class Session {
+    var user: User?
+    func signIn(_ u: User) { user = u }
+}
+
+@main
+struct App: App {
+    @State private var session = Session()
+    var body: some Scene {
+        WindowGroup {
+            RootView().environment(session)     // inject
+        }
+    }
+}
+
+struct ProfileView: View {
+    @Environment(Session.self) private var session   // read by type
+    var body: some View {
+        Text(session.user?.name ?? "Guest")
+    }
+}</code></pre>
+
+      <div class="callout tip"><strong>DI rule of thumb:</strong> use <code>@Environment</code> for cross-cutting concerns (theme, API client, auth session). Use plain initializers for view-specific config.</div>
+
+      <div class="project">
+        <h4>Week 8 Project · Theme + Auth System</h4>
+        <p>Build a small app that swaps an entire theme (colors, typography, spacing) at runtime AND has a full auth gate.</p>
+        <div class="req">
+          <span>Custom <code>@Observable</code> <code>ThemeManager</code> in environment</span>
+          <span>Auth gate: shows <code>LoginView</code> if <code>session.user == nil</code></span>
+          <span>Sign-out clears the session and dismisses to login</span>
+          <span>Inject mock <code>AuthClient</code> for previews</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 9 -->
+    <section class="module" id="m9">
+      <div class="module-head">
+        <div class="module-num pink">9</div>
+        <div>
+          <h2>Week 9 · Canvas, Shapes & Custom Drawing</h2>
+          <div class="tagline">From Path to Canvas to TimelineView — when you need pixels, SwiftUI delivers.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">9.1</span>Custom Shape</h3>
+<pre><code class="language-swift">struct ChevronShape: Shape {
+    var arrow: CGFloat = 12
+    func path(in rect: CGRect) -&gt; Path {
+        var p = Path()
+        p.move(to: .init(x: rect.minX, y: rect.minY))
+        p.addLine(to: .init(x: rect.maxX - arrow, y: rect.minY))
+        p.addLine(to: .init(x: rect.maxX, y: rect.midY))
+        p.addLine(to: .init(x: rect.maxX - arrow, y: rect.maxY))
+        p.addLine(to: .init(x: rect.minX, y: rect.maxY))
+        p.closeSubpath()
+        return p
+    }
+}</code></pre>
+
+      <h3><span class="h3num">9.2</span>Canvas — for high-volume drawing</h3>
+<pre><code class="language-swift">struct StarfieldView: View {
+    let stars = (0..&lt;200).map { _ in CGPoint(x: .random(in: 0...1), y: .random(in: 0...1)) }
+    var body: some View {
+        Canvas { ctx, size in
+            for s in stars {
+                let r = CGFloat.random(in: 0.4...1.6)
+                let p = CGPoint(x: s.x * size.width, y: s.y * size.height)
+                ctx.fill(Path(ellipseIn: CGRect(x: p.x, y: p.y, width: r*2, height: r*2)),
+                         with: .color(.white.opacity(.random(in: 0.3...1))))
+            }
+        }
+        .background(.black)
+    }
+}</code></pre>
+
+      <h3><span class="h3num">9.3</span>TimelineView — animation by clock, not state</h3>
+<pre><code class="language-swift">struct PulsingHeart: View {
+    var body: some View {
+        TimelineView(.animation) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            let scale = 1 + 0.1 * sin(t * 4)
+            Image(systemName: "heart.fill")
+                .font(.system(size: 80))
+                .foregroundStyle(.red)
+                .scaleEffect(scale)
+        }
+    }
+}</code></pre>
+
+      <div class="project">
+        <h4>Week 9 Project · Activity Rings</h4>
+        <p>Re-create Apple's three concentric activity rings. Animated fill on data change, anti-aliased, with subtle shimmer when complete.</p>
+        <div class="req">
+          <span>Three custom <code>Shape</code>s drawn with <code>Path.addArc</code></span>
+          <span>Stroke style with <code>.round</code> line cap</span>
+          <span>Animate progress with <code>animatableData</code></span>
+          <span>Shimmer using <code>TimelineView</code> + masking</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 10 -->
+    <section class="module" id="m10">
+      <div class="module-head">
+        <div class="module-num">10</div>
+        <div>
+          <h2>Week 10 · Architecture & Modularization</h2>
+          <div class="tagline">MV vs MVVM in SwiftUI, the Coordinator question, and Swift Package modular layouts.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">10.1</span>The honest take on MVVM in SwiftUI</h3>
+      <p>SwiftUI's <code>View</code> already <em>is</em> a view-model in the Rx sense — it's a function from state to UI. With <code>@Observable</code>, a "ViewModel" is often just a data store you pass in or read from <code>@Environment</code>. Don't add ceremony for its own sake. Reach for VM when:</p>
+      <ul>
+        <li>You have non-trivial transforms over async data streams.</li>
+        <li>You need to unit-test logic without rendering views.</li>
+        <li>Multiple platforms (iOS + macOS) share business logic.</li>
+      </ul>
+
+      <h3><span class="h3num">10.2</span>A pragmatic file/module layout</h3>
+<pre><code class="language-text">App/
+  AppEntry.swift              // @main, root scene
+Features/
+  Feed/
+    FeedView.swift
+    FeedModel.swift           // @Observable
+    FeedAPI.swift
+  Profile/...
+Core/
+  Networking/                 // SPM module
+  Persistence/                // SPM module
+  DesignSystem/               // SPM module — colors, typography, components
+Shared/
+  Models/
+  Extensions/</code></pre>
+
+      <h3><span class="h3num">10.3</span>Coordinators — needed?</h3>
+      <p>Usually not. <code>NavigationStack(path:)</code> + a simple <code>Router</code> object covers most needs. Consider a coordinator <em>only</em> when you have multiple flows that own their own back stack (e.g., a deep onboarding tree that should not intermix with the main app's history).</p>
+
+      <h3><span class="h3num">10.4</span>Cross-module previews</h3>
+<pre><code class="language-swift">#Preview {
+    FeedView()
+        .environment(FeedModel.preview)        // static factory in #if DEBUG
+        .modelContainer(for: Post.self, inMemory: true)
+}</code></pre>
+
+      <div class="project">
+        <h4>Week 10 Project · Refactor Week 6 into modules</h4>
+        <p>Take the GitHub Search app and split it into three SPM modules: <code>DesignSystem</code>, <code>Networking</code>, <code>SearchFeature</code>. The app target only imports the feature.</p>
+        <div class="req">
+          <span>Each module compiles standalone</span>
+          <span><code>DesignSystem</code> exposes <code>Color.brand*</code>, <code>.appPrimary</code> button style</span>
+          <span><code>Networking</code> exposes a protocol-based client</span>
+          <span>App target ≤ 50 lines of code</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 11 -->
+    <section class="module" id="m11">
+      <div class="module-head">
+        <div class="module-num purple">11</div>
+        <div>
+          <h2>Week 11 · Testing, Previews & Accessibility</h2>
+          <div class="tagline">Tests, snapshot strategy, VoiceOver, dynamic type, RTL — the production checklist.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">11.1</span>Unit-testing a view model</h3>
+<pre><code class="language-swift">import Testing
+@testable import GitHubSearch
+
+@Suite("FeedModel")
+struct FeedModelTests {
+    @Test("loads posts on success")
+    func loadsOnSuccess() async {
+        let api = MockAPI(result: .success([.fixture]))
+        let sut = FeedModel(api: api)
+        await sut.load()
+        #expect(sut.posts.count == 1)
+        #expect(sut.phase == .loaded)
+    }
+
+    @Test("surfaces error on failure")
+    func surfacesError() async {
+        let sut = FeedModel(api: MockAPI(result: .failure(URLError(.timedOut))))
+        await sut.load()
+        if case .failed = sut.phase {} else { Issue.record("expected .failed") }
+    }
+}</code></pre>
+
+      <h3><span class="h3num">11.2</span>UI testing with XCUITest</h3>
+<pre><code class="language-swift">final class OnboardingUITests: XCTestCase {
+    func testCompletesOnboarding() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestMode"]
+        app.launch()
+        app.buttons["Get started"].tap()
+        app.textFields["name"].typeText("Kim")
+        app.textFields["email"].typeText("kim@example.com")
+        app.buttons["Finish"].tap()
+        XCTAssertTrue(app.staticTexts["Welcome, Kim"].waitForExistence(timeout: 2))
+    }
+}</code></pre>
+
+      <h3><span class="h3num">11.3</span>Accessibility checklist</h3>
+<pre><code class="language-swift">Image("logo")
+    .accessibilityHidden(true)                   // decorative
+
+Button(action: like) { Image(systemName: "heart") }
+    .accessibilityLabel("Like")
+    .accessibilityValue(isLiked ? "On" : "Off")
+    .accessibilityHint("Double tap to toggle")
+
+Text(article.title).accessibilityAddTraits(.isHeader)
+
+VStack { Text(name); Text(role) }
+    .accessibilityElement(children: .combine)    // one a11y node, not two</code></pre>
+
+      <div class="callout"><strong>The non-negotiable a11y trio:</strong> Dynamic Type (<code>Text</code> uses semantic styles), VoiceOver labels on every interactive element, and 4.5:1 minimum contrast. Audit each weekly project against this.</div>
+
+      <div class="project">
+        <h4>Week 11 Project · Audit + Tests for Week 6 app</h4>
+        <p>Add a real test suite and a11y pass to the GitHub Search app.</p>
+        <div class="req">
+          <span>≥ 80% line coverage on <code>FeedModel</code></span>
+          <span>One UI test that searches and opens a result</span>
+          <span>VoiceOver pass: every control labeled, headings marked</span>
+          <span>RTL preview screenshot for the row layout</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- WEEK 12 -->
+    <section class="module" id="m12">
+      <div class="module-head">
+        <div class="module-num green">12</div>
+        <div>
+          <h2>Week 12 · Capstone</h2>
+          <div class="tagline">Ship a real app that ties everything together.</div>
+        </div>
+      </div>
+
+      <h3><span class="h3num">12.1</span>Pick one of these capstone briefs</h3>
+      <ul>
+        <li><strong>Trail — a hike tracker.</strong> CoreLocation streams, MapKit overlay, SwiftData persistence, share sheet export, widget.</li>
+        <li><strong>Brew — a coffee log.</strong> SwiftData with photos, recipe sharing via JSON, widget showing today's brew, watchOS companion.</li>
+        <li><strong>Clip — a shared shopping list.</strong> CloudKit sync, real-time updates, optimistic UI, push notifications.</li>
+      </ul>
+
+      <h3><span class="h3num">12.2</span>Required capabilities (whichever brief you pick)</h3>
+      <ul>
+        <li>Networking with proper error/loading/empty states.</li>
+        <li>SwiftData persistence with at least one relationship.</li>
+        <li>One non-trivial custom layout or animation (Week 5 / 9 territory).</li>
+        <li>Modularized: at least one feature in a Swift Package.</li>
+        <li>Test target with one VM unit test and one UI test.</li>
+        <li>A11y pass: VoiceOver, Dynamic Type, RTL.</li>
+        <li>App icon + at least one App Intents shortcut.</li>
+      </ul>
+
+      <h3><span class="h3num">12.3</span>Definition of done</h3>
+      <div class="callout tip">You can hand the device to a stranger, give a one-sentence pitch, and they can complete the primary flow without instruction. <strong>That</strong> is when you're done — not when the feature list is checked off.</div>
+
+      <div class="project">
+        <h4>Submission</h4>
+        <p>Push the capstone to a public GitHub repo with a README that includes screenshots, the architecture sketch, and a "What I'd change next" section. That last section is the most important — it shows you're past the tutorial phase.</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>Plan generated for Kimleak · Modeled on the KSHRD Advanced iOS Development course · Built for an engineer who already speaks UIKit.</p>
+      <p>Treat this as a living document. Skip what you know. Linger where you don't.</p>
+    </footer>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-swift.min.js"></script>
+<script>
+  // Highlight active section in sidebar
+  const links = document.querySelectorAll('aside nav a');
+  const sections = [...document.querySelectorAll('section.module')];
+  function onScroll() {
+    const y = window.scrollY + 120;
+    let active = sections[0];
+    for (const s of sections) { if (s.offsetTop <= y) active = s; }
+    links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + active.id));
+  }
+  document.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
